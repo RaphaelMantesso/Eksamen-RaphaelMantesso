@@ -1,0 +1,14 @@
+{
+  "name": "eksamen-raphaelmantesso",
+  "version": "1.0.0",
+  "description": "Dating-app for JavaScript og API eksamen",
+  "main": "src/js/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Raphael Mantesso",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}
