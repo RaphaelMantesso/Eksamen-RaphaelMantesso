@@ -46,5 +46,19 @@
         
         <div id="message"></div>
     </div>
+
+    <!-- Inkluder JavaScript-filer -->
+    <script src="js/database.js"></script>
+    <script src="js/authentication.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Sjekk om brukeren allerede er innlogget
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isLoggedIn()) {
+                window.location.href = 'app.html';
+            }
+        });
+    </script>
 </body>
 </html>

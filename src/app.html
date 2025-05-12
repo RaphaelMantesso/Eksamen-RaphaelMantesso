@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating App - Hovedside</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dating App</h1>
+            <div class="user-info">
+                <span id="welcomeMessage">Velkommen!</span>
+                <button id="logoutBtn" class="btn">Logg ut</button>
+            </div>
+        </header>
+        
+        <main>
+            <section>
+                <h2>Profiler</h2>
+                <p>Her vil profiler fra RandomUser API vises.</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/authentication.js"></script>
+    <script>
+        // Vis brukerinformasjon når siden lastes
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = getCurrentUser();
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            
+            if (currentUser) {
+                welcomeMessage.textContent = `Velkommen, ${currentUser.username}!`;
+            }
+            
+            // Legg til event listener for utloggingsknappen
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+        });
+    </script>
+</body>
+</html>
