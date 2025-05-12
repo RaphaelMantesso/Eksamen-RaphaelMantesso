@@ -8,7 +8,7 @@ const USERS_ENDPOINT = `${API_URL}/users`;
 /**
  * Lagrer en ny bruker i databasen
  * @param {string} username - Brukernavnet
- * @param {string} password - Passordet (bør krypteres i en ekte app)
+ * @param {string} password - Passordet
  * @returns {Promise} - Promise med resultatet av operasjonen
  */
 async function saveUser(username, password) {
