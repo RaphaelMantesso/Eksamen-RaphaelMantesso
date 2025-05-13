@@ -15,7 +15,6 @@ async function authenticateUser(username, password) {
             return false;
         }
         
-        // Sjekk passord
         if (user.password !== password) {
             showMessage('Brukernavn eller passord er feil', true);
             return false;
@@ -46,7 +45,7 @@ async function authenticateUser(username, password) {
 function createSession(user) {
     // Fjern passordet fra brukerinformasjonen før lagring
     const sessionUser = {
-        id: user._id,
+        id: user.id,
         username: user.username,
         createdAt: user.createdAt
     };
