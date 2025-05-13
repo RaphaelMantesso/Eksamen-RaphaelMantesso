@@ -36,10 +36,13 @@ async function getUserProfile(userId) {
             return profiles[userId];
         }
 
+        // Hent brukerinformasjon
+        const currentUser = getCurrentUser();
+
         // Hvis den ikke eksisterer, opprett en standardprofil
         const defaultProfile = {
             id: userId,
-            name: 'Ny Bruker',
+            name: currentUser ? currentUser.username : 'Ny Bruker', // Bruk brukernavn i stedet for 'Ny Bruker'
             age: 25,
             location: 'Oslo',
             bio: 'Hei! Jeg er ny her.',
@@ -61,41 +64,7 @@ async function getUserProfile(userId) {
     }
 }
 
-/**
- * Oppretter en standardprofil for en ny bruker
- * @param {Object} user - Brukerinformasjon
- * @returns {UserProfile} - Standardprofil
- */
-async function createDefaultProfile(user) {
-    const defaultProfile = {
-        userId: user.id,
-        name: user.username,
-        age: 25,
-        location: 'Oslo',
-        bio: 'Hei! Jeg er ny på denne appen.',
-        imageUrl: 'images/avatar-1.png',
-        avatar: 'avatar-1',
-        gender: 'other',
-        preference: 'both'
-    };
-
-    try {
-        // Hent eksisterende profiler
-        const profilesJson = localStorage.getItem('datingAppProfiles');
-        const profiles = profilesJson ? JSON.parse(profilesJson) : [];
-
-        // Legg til ny profil
-        profiles.push(defaultProfile);
-
-        // Lagre oppdatert profilliste
-        localStorage.setItem('datingAppProfiles', JSON.stringify(profiles));
-
-        return defaultProfile;
-    } catch (error) {
-        console.error('Feil ved oppretting av standardprofil:', error);
-        return defaultProfile;
-    }
-}
+// Denne funksjonen er erstattet av den oppdaterte versjonen nedenfor
 
 /**
  * Oppdaterer brukerprofilen i localStorage
@@ -123,7 +92,11 @@ async function updateUserProfile(userId, profileData) {
     }
 }
 
-// Oppdatere createDefaultProfile-funksjonen for å bruke 'userProfiles'
+/**
+ * Oppretter en standardprofil for en ny bruker
+ * @param {Object} user - Brukerinformasjon
+ * @returns {UserProfile} - Standardprofil
+ */
 async function createDefaultProfile(user) {
     const defaultProfile = {
         id: user.id,
