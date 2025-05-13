@@ -138,6 +138,49 @@
     margin-top: 10px;
 }
 
+/* Filter-seksjon */
+.filter-section {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.filter-btn {
+    flex: 1;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.filter-btn:first-child {
+    background-color: #3498db;
+}
+
+.filter-btn:first-child:hover {
+    background-color: #2980b9;
+}
+
+.filter-btn:last-child {
+    background-color: #2ecc71;
+}
+
+.filter-btn:last-child:hover {
+    background-color: #27ae60;
+}
+
 /* Matcher-seksjon */
 .matches-section {
     background-color: #fff;

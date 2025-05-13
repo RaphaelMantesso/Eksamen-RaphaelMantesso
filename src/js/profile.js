@@ -18,27 +18,43 @@
  * @param {string} userId - Brukerens ID
  * @returns {Promise<UserProfile|null>} - Promise med brukerprofilen eller null
  */
+
 async function getUserProfile(userId) {
     try {
-        // Sjekk om brukeren er innlogget
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-            return null;
+        // Sjekk om det finnes en profil i localStorage
+        const profilesJson = localStorage.getItem('userProfiles');
+        const profiles = profilesJson ? JSON.parse(profilesJson) : {};
+
+        // Hvis profilen eksisterer, returner den
+        if (profiles[userId]) {
+            // I begynnelsen av getUserProfile-funksjonen
+            console.log('Prøver å hente profil for bruker:', userId);
+
+            // Etter å ha hentet profilen
+            console.log('Profil hentet:', profiles[userId]);
+
+            return profiles[userId];
         }
-        
-        // Hent brukerprofil fra localStorage
-        const profilesJson = localStorage.getItem('datingAppProfiles');
-        const profiles = profilesJson ? JSON.parse(profilesJson) : [];
-        
-        // Finn profilen til brukeren
-        const userProfile = profiles.find(profile => profile.userId === userId);
-        
-        // Hvis profilen ikke finnes, returner en standardprofil
-        if (!userProfile) {
-            return await createDefaultProfile(currentUser);
-        }
-        
-        return userProfile;
+
+        // Hvis den ikke eksisterer, opprett en standardprofil
+        const defaultProfile = {
+            id: userId,
+            name: 'Ny Bruker',
+            age: 25,
+            location: 'Oslo',
+            bio: 'Hei! Jeg er ny her.',
+            gender: 'other',
+            preference: 'both',
+            avatar: 'avatar-1',
+            createdAt: new Date().toISOString()
+        };
+
+        // Lagre standardprofilen
+        profiles[userId] = defaultProfile;
+        localStorage.setItem('userProfiles', JSON.stringify(profiles));
+
+        console.log('Standardprofil opprettet:', defaultProfile);
+        return defaultProfile;
     } catch (error) {
         console.error('Feil ved henting av brukerprofil:', error);
         return null;
@@ -62,18 +78,18 @@ async function createDefaultProfile(user) {
         gender: 'other',
         preference: 'both'
     };
-    
+
     try {
         // Hent eksisterende profiler
         const profilesJson = localStorage.getItem('datingAppProfiles');
         const profiles = profilesJson ? JSON.parse(profilesJson) : [];
-        
+
         // Legg til ny profil
         profiles.push(defaultProfile);
-        
+
         // Lagre oppdatert profilliste
         localStorage.setItem('datingAppProfiles', JSON.stringify(profiles));
-        
+
         return defaultProfile;
     } catch (error) {
         console.error('Feil ved oppretting av standardprofil:', error);
@@ -87,26 +103,19 @@ async function createDefaultProfile(user) {
  * @param {UserProfile} profileData - Profildata som skal oppdateres
  * @returns {Promise<UserProfile|null>} - Promise med oppdatert profil eller null
  */
+// Oppdatere updateUserProfile-funksjonen for å bruke 'userProfiles'
 async function updateUserProfile(userId, profileData) {
     try {
         // Hent eksisterende profiler
-        const profilesJson = localStorage.getItem('datingAppProfiles');
-        const profiles = profilesJson ? JSON.parse(profilesJson) : [];
-        
-        // Finn indeksen til profilen som skal oppdateres
-        const profileIndex = profiles.findIndex(profile => profile.userId === userId);
-        
-        if (profileIndex === -1) {
-            // Hvis profilen ikke finnes, legg til en ny
-            profiles.push(profileData);
-        } else {
-            // Oppdater eksisterende profil
-            profiles[profileIndex] = profileData;
-        }
-        
+        const profilesJson = localStorage.getItem('userProfiles');
+        const profiles = profilesJson ? JSON.parse(profilesJson) : {};
+
+        // Oppdater profilen
+        profiles[userId] = profileData;
+
         // Lagre oppdatert profilliste
-        localStorage.setItem('datingAppProfiles', JSON.stringify(profiles));
-        
+        localStorage.setItem('userProfiles', JSON.stringify(profiles));
+
         return profileData;
     } catch (error) {
         console.error('Feil ved oppdatering av profil:', error);
@@ -114,55 +123,88 @@ async function updateUserProfile(userId, profileData) {
     }
 }
 
+// Oppdatere createDefaultProfile-funksjonen for å bruke 'userProfiles'
+async function createDefaultProfile(user) {
+    const defaultProfile = {
+        id: user.id,
+        name: user.username,
+        age: 25,
+        location: 'Oslo',
+        bio: 'Hei! Jeg er ny på denne appen.',
+        avatar: 'avatar-1',
+        gender: 'other',
+        preference: 'both',
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        // Hent eksisterende profiler
+        const profilesJson = localStorage.getItem('userProfiles');
+        const profiles = profilesJson ? JSON.parse(profilesJson) : {};
+
+        // Legg til ny profil
+        profiles[user.id] = defaultProfile;
+
+        // Lagre oppdatert profilliste
+        localStorage.setItem('userProfiles', JSON.stringify(profiles));
+
+        return defaultProfile;
+    } catch (error) {
+        console.error('Feil ved oppretting av standardprofil:', error);
+        return defaultProfile;
+    }
+}
+
 /**
  * Viser brukerprofilen i grensesnittet
  * @param {UserProfile} profile - Brukerprofilen som skal vises
  */
+
 function displayUserProfile(profile) {
-    if (!profile) return;
-    
-    // Oppdater profilvisningen
-    document.getElementById('profileName').textContent = profile.name || 'Laster...';
-    document.getElementById('profileAge').textContent = `Alder: ${profile.age || '--'}`;
-    document.getElementById('profileLocation').textContent = `Sted: ${profile.location || '--'}`;
-    document.getElementById('profileBio').textContent = profile.bio || 'Ingen biografi tilgjengelig.';
-    
-    // Oppdater kjønn og preferanse hvis elementene finnes
-    const genderElement = document.getElementById('profileGender');
-    if (genderElement) {
-        let genderText = 'Annet';
-        if (profile.gender === 'male') genderText = 'Mann';
-        if (profile.gender === 'female') genderText = 'Kvinne';
-        genderElement.textContent = `Kjønn: ${genderText}`;
+    if (!profile) {
+        console.error('Ingen profil å vise');
+        return;
     }
-    
-    const preferenceElement = document.getElementById('profilePreference');
-    if (preferenceElement) {
-        let preferenceText = 'Begge';
-        if (profile.preference === 'male') preferenceText = 'Menn';
-        if (profile.preference === 'female') preferenceText = 'Kvinner';
-        preferenceElement.textContent = `Interessert i: ${preferenceText}`;
-    }
-    
-    // Oppdater profilbildet hvis tilgjengelig
+
+    // Oppdatere grensesnittelementer
+    const profileName = document.getElementById('profileName');
+    const profileAge = document.getElementById('profileAge');
+    const profileLocation = document.getElementById('profileLocation');
+    const profileGender = document.getElementById('profileGender');
+    const profilePreference = document.getElementById('profilePreference');
+    const profileBio = document.getElementById('profileBio');
     const profileImage = document.getElementById('profileImage');
-    if (profileImage) {
-        if (profile.avatar) {
-            profileImage.src = `images/${profile.avatar}.png`;
-            profileImage.onerror = function() {
-                // Fallback til default-avatar hvis bildet ikke finnes
-                this.src = 'images/default-avatar.png';
-            };
-        } else if (profile.imageUrl) {
-            profileImage.src = profile.imageUrl;
-            profileImage.onerror = function() {
-                // Fallback til default-avatar hvis bildet ikke finnes
-                this.src = 'images/default-avatar.png';
-            };
-        } else {
-            profileImage.src = 'images/default-avatar.png';
-        }
+
+    if (profileName) profileName.textContent = profile.name || 'Ingen navn';
+    if (profileAge) profileAge.textContent = `Alder: ${profile.age || '--'}`;
+    if (profileLocation) profileLocation.textContent = `Sted: ${profile.location || '--'}`;
+
+    // Oversette kjønn for visning
+    let genderText = '--';
+    if (profile.gender === 'male') genderText = 'Mann';
+    else if (profile.gender === 'female') genderText = 'Kvinne';
+    else if (profile.gender === 'other') genderText = 'Annet';
+
+    if (profileGender) profileGender.textContent = `Kjønn: ${genderText}`;
+
+    // Oversette preferanse for visning
+    let preferenceText = '--';
+    if (profile.preference === 'male') preferenceText = 'Menn';
+    else if (profile.preference === 'female') preferenceText = 'Kvinner';
+    else if (profile.preference === 'both') preferenceText = 'Begge';
+
+    if (profilePreference) profilePreference.textContent = `Interessert i: ${preferenceText}`;
+
+    if (profileBio) profileBio.textContent = profile.bio || 'Ingen biografi tilgjengelig';
+
+    // Oppdatere profilbilde
+    if (profileImage && profile.avatar) {
+        profileImage.src = `images/${profile.avatar}.png`;
     }
+
+    // I begynnelsen av displayUserProfile-funksjonen
+    console.log('Viser profil:', profile);
+    console.log('Profil vist vellykket:', profile);
 }
 
 /**
@@ -175,18 +217,18 @@ async function updateProfileAvatar(userId, avatar) {
     try {
         // Hent gjeldende profil
         const profile = await getUserProfile(userId);
-        
+
         if (!profile) {
             throw new Error('Kunne ikke finne brukerprofil');
         }
-        
+
         // Oppdater avatar
         const updatedProfile = {
             ...profile,
             avatar: avatar,
             imageUrl: `images/${avatar}.png`
         };
-        
+
         // Lagre oppdatert profil
         return await updateUserProfile(userId, updatedProfile);
     } catch (error) {
