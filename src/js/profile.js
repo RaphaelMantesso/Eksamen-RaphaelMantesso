@@ -27,22 +27,24 @@ async function getUserProfile(userId) {
 
         // Hvis profilen eksisterer, returner den
         if (profiles[userId]) {
-            // I begynnelsen av getUserProfile-funksjonen
-            console.log('Prøver å hente profil for bruker:', userId);
-
-            // Etter å ha hentet profilen
+            console.log('Profil funnet for bruker:', userId);
             console.log('Profil hentet:', profiles[userId]);
-
             return profiles[userId];
         }
 
         // Hent brukerinformasjon
         const currentUser = getCurrentUser();
+        if (!currentUser) {
+            console.error('Ingen innlogget bruker funnet');
+            return null;
+        }
 
-        // Hvis den ikke eksisterer, opprett en standardprofil
+        console.log('Oppretter ny profil for bruker:', currentUser.username);
+
+        // Opprett en standardprofil med brukernavnet
         const defaultProfile = {
             id: userId,
-            name: currentUser ? currentUser.username : 'Ny Bruker', // Bruk brukernavn i stedet for 'Ny Bruker'
+            name: currentUser.username, // Bruk alltid brukernavnet
             age: 25,
             location: 'Oslo',
             bio: 'Hei! Jeg er ny her.',
@@ -56,7 +58,7 @@ async function getUserProfile(userId) {
         profiles[userId] = defaultProfile;
         localStorage.setItem('userProfiles', JSON.stringify(profiles));
 
-        console.log('Standardprofil opprettet:', defaultProfile);
+        console.log('Ny profil opprettet med brukernavn:', currentUser.username);
         return defaultProfile;
     } catch (error) {
         console.error('Feil ved henting av brukerprofil:', error);
