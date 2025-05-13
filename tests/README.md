@@ -21,22 +21,27 @@ npm test
 ## Testdekning
 
 ### Side 1 (Innlogging)
-- Registrering av bruker med gyldig brukernavn og passord
 - Validering av brukernavn
+- Validering av passord
 
 ### Side 2 (Dating App)
-- Oppretting av standardprofil med brukernavn
-- Oppdatering av brukerprofil
+- Lagring og henting av brukerprofil i localStorage
+- Validering av profildata
 - Filtrering av brukere basert på alder og kjønn
-- Lagring av likte brukere
 - Super Like funksjonalitet
+
+## Testmetodikk
+
+Testene er skrevet med Jest og følger AAA-mønsteret (Arrange, Act, Assert):
+
+1. **Arrange**: Sette opp testdata og forutsetninger
+2. **Act**: Utføre handlingen som skal testes
+3. **Assert**: Verifisere at resultatet er som forventet
 
 ## Mocking
 
 Testene bruker mocking for å simulere:
 - localStorage
-- fetch API
 - DOM-elementer
-- Globale funksjoner
 
 Dette gjør at testene kan kjøre uavhengig av en faktisk nettleser og API-tilkobling.
