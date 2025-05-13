@@ -57,13 +57,12 @@ describe('Brukerprofil (Side 2)', () => {
 
     // Funksjon for validering av profil
     const validateProfile = (profile) => {
-      return (
-        profile.name && profile.name.length >= 2 &&
-        profile.age && profile.age >= 18 &&
-        profile.location && profile.location.length >= 2 &&
-        ['male', 'female', 'other'].includes(profile.gender) &&
-        ['male', 'female', 'both'].includes(profile.preference)
-      );
+      if (!profile.name || profile.name.length < 2) return false;
+      if (!profile.age || profile.age < 18) return false;
+      if (!profile.location || profile.location.length < 2) return false;
+      if (!['male', 'female', 'other'].includes(profile.gender)) return false;
+      if (!['male', 'female', 'both'].includes(profile.preference)) return false;
+      return true;
     };
 
     // Act & Assert
