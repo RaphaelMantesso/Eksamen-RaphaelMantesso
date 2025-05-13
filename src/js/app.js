@@ -2,6 +2,9 @@
 
 // Globale variabler
 let currentProfile = null;
+let potentialMatches = []; // Array med potensielle matcher
+let currentMatchIndex = 0; // Indeks for gjeldende match
+let likedUsers = []; // Array med likte brukere
 
 /**
  * Initialiserer applikasjonen
@@ -25,8 +28,38 @@ async function initApp() {
     // Last inn filterpreferanser
     await loadFilterPreferences();
 
-    // Last inn potensielle matcher
-    loadPotentialMatches();
+    // Last inn likte brukere
+    await loadLikedUsers();
+
+    // Sjekk om det er en lagret tilstand for potensielle matcher
+    const savedState = localStorage.getItem('matchingState');
+    if (savedState) {
+        try {
+            const state = JSON.parse(savedState);
+            // Gjenopprett tilstanden hvis den er gyldig
+            if (state.potentialMatches && state.potentialMatches.length > 0 &&
+                state.currentMatchIndex !== undefined &&
+                state.currentMatchIndex < state.potentialMatches.length) {
+
+                potentialMatches = state.potentialMatches;
+                currentMatchIndex = state.currentMatchIndex;
+
+                // Vis gjeldende match
+                displayCurrentMatch();
+                console.log('Gjenopprettet tidligere matching-tilstand');
+            } else {
+                // Last inn nye potensielle matcher hvis tilstanden er ugyldig
+                loadPotentialMatches();
+            }
+        } catch (error) {
+            console.error('Feil ved gjenoppretting av matching-tilstand:', error);
+            // Last inn nye potensielle matcher ved feil
+            loadPotentialMatches();
+        }
+    } else {
+        // Last inn potensielle matcher hvis ingen lagret tilstand
+        loadPotentialMatches();
+    }
 
     // Sørg for at modaler er lukket ved oppstart
     const editProfileModal = document.getElementById('editProfileModal');
@@ -274,7 +307,7 @@ async function loadPotentialMatches() {
     try {
         matchesContainer.innerHTML = '<p class="loading-text">Laster potensielle matcher...</p>';
 
-        const response = await fetch('https://randomuser.me/api/?results=10&nat=no,dk,se');
+        const response = await fetch('https://randomuser.me/api/?results=20&nat=no,dk,se');
 
         if (!response.ok) {
             throw new Error('Kunne ikke hente potensielle matcher');
@@ -286,49 +319,150 @@ async function loadPotentialMatches() {
         console.log('Brukere mottatt fra API:', users);
         console.log('Filtre brukt:', getFilters());
 
-        matchesContainer.innerHTML = '';
+        // Filtrer brukere basert på filterkriterier
+        potentialMatches = filterUsers(users);
+        console.log('Brukere etter filtrering:', potentialMatches);
 
-        const filteredUsers = filterUsers(users);
-        console.log('Brukere etter filtrering:', filteredUsers);
+        // Tilbakestill indeks
+        currentMatchIndex = 0;
 
-        filteredUsers.forEach(user => {
-            const matchCard = document.createElement('div');
-            matchCard.className = 'match-card';
+        // Lagre den nye tilstanden
+        saveMatchingState();
 
-            matchCard.innerHTML = `
-                <div class="match-image">
-                    <img src="${user.picture.large}" alt="Profilbilde">
-                </div>
-                <div class="match-info">
-                    <h3>${user.name.first} ${user.name.last}</h3>
-                    <p>Alder: ${user.dob.age}</p>
-                    <p>Sted: ${user.location.city}, ${user.location.country}</p>
-                </div>
-                <div class="match-actions">
-                    <button class="like-btn" data-id="${user.login.uuid}">Liker</button>
-                    <button class="dislike-btn" data-id="${user.login.uuid}">Liker ikke</button>
-                </div>
-            `;
-
-            matchesContainer.appendChild(matchCard);
-        });
-
-        document.querySelectorAll('.like-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => handleLike(e.target.dataset.id));
-        });
-
-        document.querySelectorAll('.dislike-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => handleDislike(e.target.dataset.id));
-        });
-
-        if (filteredUsers.length === 0) {
-            matchesContainer.innerHTML = '<p class="no-matches">Ingen potensielle matcher funnet basert på dine preferanser.</p>';
+        // Vis første match eller "ingen matcher" melding
+        if (potentialMatches.length > 0) {
+            displayCurrentMatch();
+        } else {
+            matchesContainer.innerHTML = '<p class="no-more-matches">Ingen potensielle matcher funnet basert på dine preferanser.</p>';
+            // Tøm lagret tilstand siden det ikke er noen matcher
+            localStorage.removeItem('matchingState');
         }
 
     } catch (error) {
         console.error('Feil ved lasting av potensielle matcher:', error);
         matchesContainer.innerHTML = '<p class="error">Kunne ikke laste potensielle matcher. Vennligst prøv igjen senere.</p>';
     }
+}
+
+/**
+ * Viser gjeldende match
+ */
+function displayCurrentMatch() {
+    const matchesContainer = document.getElementById('potentialMatches');
+    if (!matchesContainer) return;
+
+    // Sjekk om det er flere matcher tilgjengelig
+    if (currentMatchIndex >= potentialMatches.length) {
+        matchesContainer.innerHTML = '<p class="no-more-matches">Ingen flere matcher tilgjengelig. Last inn flere?</p>';
+
+        // Legg til en knapp for å laste inn flere matcher
+        const reloadBtn = document.createElement('button');
+        reloadBtn.className = 'btn';
+        reloadBtn.textContent = 'Last inn flere matcher';
+        reloadBtn.addEventListener('click', loadPotentialMatches);
+
+        matchesContainer.appendChild(reloadBtn);
+
+        // Tøm lagret tilstand siden det ikke er flere matcher
+        localStorage.removeItem('matchingState');
+        return;
+    }
+
+    // Hent gjeldende bruker
+    const user = potentialMatches[currentMatchIndex];
+
+    // Lagre gjeldende tilstand
+    saveMatchingState();
+
+    // Tøm container
+    matchesContainer.innerHTML = '';
+
+    // Opprett match-kort
+    const matchCard = document.createElement('div');
+    matchCard.className = 'match-card';
+    matchCard.id = 'currentMatchCard';
+
+    matchCard.innerHTML = `
+        <div class="match-image">
+            <img src="${user.picture.large}" alt="Profilbilde">
+        </div>
+        <div class="match-info">
+            <h3>${user.name.first} ${user.name.last}</h3>
+            <p>Alder: ${user.dob.age}</p>
+            <p>Sted: ${user.location.city}, ${user.location.country}</p>
+        </div>
+        <div class="match-actions">
+            <button class="dislike-btn" data-id="${user.login.uuid}">✕</button>
+            <button class="like-btn" data-id="${user.login.uuid}">♥</button>
+            <!-- Tilleggsfunksjonalitet: Super Like -->
+            <button class="super-like-btn" data-id="${user.login.uuid}">★</button>
+        </div>
+    `;
+
+    matchesContainer.appendChild(matchCard);
+
+    // Legg til event listeners for knappene
+    const likeBtn = matchCard.querySelector('.like-btn');
+    const dislikeBtn = matchCard.querySelector('.dislike-btn');
+    const superLikeBtn = matchCard.querySelector('.super-like-btn');
+
+    if (likeBtn) {
+        likeBtn.addEventListener('click', () => {
+            handleSwipe('right', user);
+        });
+    }
+
+    if (dislikeBtn) {
+        dislikeBtn.addEventListener('click', () => {
+            handleSwipe('left', user);
+        });
+    }
+
+    // Tilleggsfunksjonalitet: Super Like
+    if (superLikeBtn) {
+        superLikeBtn.addEventListener('click', () => {
+            handleSuperLike(user);
+        });
+    }
+}
+
+/**
+ * Lagrer gjeldende matching-tilstand i localStorage
+ */
+function saveMatchingState() {
+    const state = {
+        potentialMatches,
+        currentMatchIndex
+    };
+
+    localStorage.setItem('matchingState', JSON.stringify(state));
+    console.log('Matching-tilstand lagret');
+}
+
+/**
+ * Tilleggsfunksjonalitet: Håndterer super-like
+ * @param {Object} user - Brukerobjektet som ble super-likt
+ */
+function handleSuperLike(user) {
+    const matchCard = document.getElementById('currentMatchCard');
+    if (!matchCard) return;
+
+    // Legg til animasjonsklasse
+    matchCard.classList.add('super-liked');
+    console.log('Super-likt bruker:', user.login.uuid);
+
+    // Lagre super-like i databasen (true indikerer at dette er en super-like)
+    saveLikedUser(user, true);
+
+    // Vis en spesiell melding for super-like
+    alert('Du har gitt et Super Like! Brukeren vil se at du er ekstra interessert.');
+
+    // Vent på at animasjonen skal fullføres før neste kort vises
+    setTimeout(() => {
+        // Gå til neste match
+        currentMatchIndex++;
+        displayCurrentMatch();
+    }, 300); // 300ms er varigheten på animasjonen
 }
 
 /**
@@ -358,8 +492,13 @@ function filterUsers(users) {
         return true;
     });
 
-    console.log(`Filtrert fra ${users.length} til ${filteredUsers.length} brukere`);
-    return filteredUsers;
+    // Filtrer også basert på brukerens preferanser hvis tilgjengelig
+    const filteredByPreference = currentProfile ?
+        filterUsersByPreference(filteredUsers, currentProfile) :
+        filteredUsers;
+
+    console.log(`Filtrert fra ${users.length} til ${filteredByPreference.length} brukere`);
+    return filteredByPreference;
 }
 
 /**
@@ -426,15 +565,29 @@ async function handleFilterSubmit(event) {
         // Forsøk å lagre i database
         await saveFiltersToDatabase(currentUser.id, filters);
         console.log('Filter lagret i database');
+
+        // Vis bekreftelse til brukeren
+        const matchesContainer = document.getElementById('potentialMatches');
+        if (matchesContainer) {
+            matchesContainer.innerHTML = '<p class="loading-text">Filtre anvendt. Laster nye matcher...</p>';
+        }
+
+        // Kort forsinkelse for å vise meldingen
+        setTimeout(() => {
+            // Bruk filtre og last inn matcher på nytt
+            loadPotentialMatches();
+        }, 500);
+
     } catch (error) {
         console.error('Kunne ikke lagre filtre i database:', error);
+        alert('Kunne ikke lagre filtre i database. Prøver å bruke filtre lokalt.');
+
+        // Lagre i localStorage som fallback
+        localStorage.setItem('userFilters', JSON.stringify(filters));
+
+        // Bruk filtre og last inn matcher på nytt
+        loadPotentialMatches();
     }
-
-    // Lagre også i localStorage for rask tilgang
-    localStorage.setItem('userFilters', JSON.stringify(filters));
-
-    // Bruk filtre og last inn matcher på nytt
-    loadPotentialMatches();
 
     console.log('Filter anvendt:', filters);
 }
@@ -464,25 +617,222 @@ function filterUsersByPreference(users, userProfile) {
 }
 
 /**
- * Håndterer like-handling
- * @param {string} userId - ID til brukeren som ble likt
+ * Håndterer swipe-handling
+ * @param {string} direction - Retning ('left' eller 'right')
+ * @param {Object} user - Brukerobjektet som ble swiped
  */
-function handleLike(userId) {
-    console.log('Likt bruker:', userId);
-    alert('Du likte denne profilen!');
-    // Her kan du implementere mer funksjonalitet, som å lagre likes i localStorage
+function handleSwipe(direction, user) {
+    const matchCard = document.getElementById('currentMatchCard');
+    if (!matchCard) return;
+
+    // Legg til animasjonsklasse basert på retning
+    if (direction === 'left') {
+        matchCard.classList.add('swiped-left');
+        console.log('Disliket bruker:', user.login.uuid);
+    } else {
+        matchCard.classList.add('swiped-right');
+        console.log('Likt bruker:', user.login.uuid);
+
+        // Lagre like i databasen
+        saveLikedUser(user);
+    }
+
+    // Vent på at animasjonen skal fullføres før neste kort vises
+    setTimeout(() => {
+        // Gå til neste match
+        currentMatchIndex++;
+
+        // Oppdater lagret tilstand
+        saveMatchingState();
+
+        // Vis neste match
+        displayCurrentMatch();
+    }, 300); // 300ms er varigheten på animasjonen
 }
 
 /**
- * Håndterer dislike-handling
- * @param {string} userId - ID til brukeren som ble disliket
+ * Lagrer en likt bruker i databasen
+ * @param {Object} user - Brukerobjektet som ble likt
+ * @param {boolean} isSuperLike - Om dette er en super-like
  */
-function handleDislike(userId) {
-    console.log('Disliket bruker:', userId);
-    // Her kan du implementere mer funksjonalitet, som å fjerne profilen fra visningen
-    const matchCard = document.querySelector(`.match-card:has(button[data-id="${userId}"])`);
-    if (matchCard) {
-        matchCard.style.display = 'none';
+async function saveLikedUser(user, isSuperLike = false) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    try {
+        // Opprett et forenklet brukerobjekt for lagring
+        const likedUser = {
+            userId: currentUser.id,
+            username: currentUser.username,
+            likedUserId: user.login.uuid,
+            name: `${user.name.first} ${user.name.last}`,
+            age: user.dob.age,
+            location: `${user.location.city}, ${user.location.country}`,
+            picture: user.picture.large,
+            isSuperLike: isSuperLike, // Tilleggsfunksjonalitet: Super Like
+            timestamp: new Date().toISOString()
+        };
+
+        // Lagre i CrudCrud
+        const savedUser = await saveLikedUserToDatabase(likedUser);
+
+        if (savedUser) {
+            // Legg til i den lokale listen over likte brukere
+            likedUsers.push(savedUser);
+
+            // Oppdater visningen av likte brukere
+            displayLikedUsers();
+        }
+
+        console.log('Bruker lagret som likt:', likedUser);
+    } catch (error) {
+        console.error('Feil ved lagring av likt bruker:', error);
+    }
+}
+
+/**
+ * Laster inn likte brukere fra databasen
+ */
+async function loadLikedUsers() {
+    const likedUsersContainer = document.getElementById('likedUsers');
+    if (!likedUsersContainer) return;
+
+    try {
+        likedUsersContainer.innerHTML = '<p class="loading-text">Laster likte profiler...</p>';
+
+        // Hent likte brukere fra databasen
+        const fetchedLikedUsers = await getLikedUsersFromDatabase();
+
+        // Oppdater den globale variabelen
+        likedUsers = fetchedLikedUsers || [];
+
+        // Vis likte brukere
+        displayLikedUsers();
+
+    } catch (error) {
+        console.error('Feil ved lasting av likte brukere:', error);
+        likedUsersContainer.innerHTML = '<p class="error">Kunne ikke laste likte profiler. Vennligst prøv igjen senere.</p>';
+    }
+}
+
+/**
+ * Viser likte brukere i brukergrensesnittet
+ */
+function displayLikedUsers() {
+    const likedUsersContainer = document.getElementById('likedUsers');
+    if (!likedUsersContainer) return;
+
+    // Tøm container
+    likedUsersContainer.innerHTML = '';
+
+    if (likedUsers.length === 0) {
+        likedUsersContainer.innerHTML = '<p class="no-liked-users">Du har ikke likt noen profiler ennå.</p>';
+        return;
+    }
+
+    // Sorter likte brukere etter tidspunkt (nyeste først)
+    const sortedLikedUsers = [...likedUsers].sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    // Opprett kort for hver likt bruker
+    sortedLikedUsers.forEach(user => {
+        const likedUserCard = document.createElement('div');
+        likedUserCard.className = 'liked-user-card';
+        likedUserCard.dataset.id = user._id; // Bruk CrudCrud ID for sletting
+
+        likedUserCard.innerHTML = `
+            <div class="liked-user-image">
+                <img src="${user.picture}" alt="Profilbilde">
+                ${user.isSuperLike ? '<span class="super-liked-badge">★ Super Like</span>' : ''}
+            </div>
+            <div class="liked-user-info">
+                <h3>${user.name}</h3>
+                <p>Alder: ${user.age}</p>
+                <p>Sted: ${user.location}</p>
+            </div>
+            <button class="remove-like-btn" data-id="${user._id}">✕</button>
+        `;
+
+        likedUsersContainer.appendChild(likedUserCard);
+
+        // Legg til event listener for sletting
+        const removeBtn = likedUserCard.querySelector('.remove-like-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => removeLikedUser(user._id));
+        }
+    });
+}
+
+/**
+ * Fjerner en likt bruker fra databasen og brukergrensesnittet
+ * @param {string} likedUserId - ID til den likte brukeren som skal fjernes
+ */
+async function removeLikedUser(likedUserId) {
+    try {
+        // Fjern fra databasen
+        await removeLikedUserFromDatabase(likedUserId);
+
+        // Fjern fra den lokale listen
+        likedUsers = likedUsers.filter(user => user._id !== likedUserId);
+
+        // Oppdater visningen
+        displayLikedUsers();
+
+        console.log('Likt bruker fjernet:', likedUserId);
+    } catch (error) {
+        console.error('Feil ved fjerning av likt bruker:', error);
+        alert('Kunne ikke fjerne profilen. Vennligst prøv igjen senere.');
+    }
+}
+
+/**
+ * Fjerner en likt bruker fra databasen
+ * @param {string} likedUserId - ID til den likte brukeren som skal fjernes
+ * @returns {Promise} - Promise med resultatet av operasjonen
+ */
+async function removeLikedUserFromDatabase(likedUserId) {
+    try {
+        const response = await fetch(`${LIKES_ENDPOINT}/${likedUserId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Kunne ikke fjerne likt bruker');
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Feil ved fjerning av likt bruker fra database:', error);
+        throw error;
+    }
+}
+
+/**
+ * Lagrer en likt bruker i databasen
+ * @param {Object} likedUser - Objektet med informasjon om den likte brukeren
+ * @returns {Promise} - Promise med resultatet av operasjonen
+ */
+async function saveLikedUserToDatabase(likedUser) {
+    try {
+        const LIKES_ENDPOINT = `${API_URL}/likes`;
+
+        const response = await fetch(LIKES_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(likedUser)
+        });
+
+        if (!response.ok) {
+            throw new Error('Kunne ikke lagre likt bruker');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Feil ved lagring av likt bruker i database:', error);
+        throw error;
     }
 }
 
@@ -511,14 +861,16 @@ async function saveFilterPreferences() {
 
     try {
         // Forsøk å lagre i database
-        await saveFiltersToDatabase(currentUser.id, filters);
+        const result = await saveFiltersToDatabase(currentUser.id, filters);
 
-        // Lagre også i localStorage for rask tilgang
-        localStorage.setItem('userFilters', JSON.stringify(filters));
+        if (result) {
+            // Lagre også i localStorage for rask tilgang
+            localStorage.setItem('userFilters', JSON.stringify(filters));
 
-        // Vis bekreftelse til brukeren
-        alert('Filterpreferanser lagret i databasen!');
-        console.log('Filter lagret i database:', filters);
+            // Vis bekreftelse til brukeren
+            alert('Filterpreferanser lagret i databasen!');
+            console.log('Filter lagret i database:', filters);
+        }
     } catch (error) {
         console.error('Kunne ikke lagre filtre i database:', error);
 

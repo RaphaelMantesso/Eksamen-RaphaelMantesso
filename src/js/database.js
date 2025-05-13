@@ -5,6 +5,7 @@ const API_KEY = '1c7a08218e96445dbeaf766d825d1f20'; // Oppdatert nøkkel (13.05.
 const API_URL = `https://crudcrud.com/api/1c7a08218e96445dbeaf766d825d1f20`;
 const USERS_ENDPOINT = `${API_URL}/users`;
 const FILTERS_ENDPOINT = `${API_URL}/filters`;
+const LIKES_ENDPOINT = `${API_URL}/likes`;
 
 /**
  * Lagrer en ny bruker i databasen
@@ -231,6 +232,56 @@ async function getFiltersFromDatabase(_) {
     }
 }
 
+/**
+ * Henter likte brukere fra databasen
+ * @returns {Promise} - Promise med liste over likte brukere
+ */
+async function getLikedUsersFromDatabase() {
+    try {
+        // Sjekk om API-nøkkelen er utløpt eller CORS-problemer
+        try {
+            // Test API-tilgjengelighet
+            const testResponse = await fetch(API_URL, {
+                method: 'GET',
+                mode: 'cors'
+            });
+
+            if (!testResponse.ok) {
+                throw new Error('API ikke tilgjengelig');
+            }
+        } catch (corsError) {
+            console.warn('CORS-problem eller API-nøkkel utløpt:', corsError);
+            throw new Error('CORS-problem eller API-nøkkel utløpt');
+        }
+
+        // Hent brukernavn fra localStorage
+        const username = localStorage.getItem('currentUser') ?
+            JSON.parse(localStorage.getItem('currentUser')).username :
+            'anonymous';
+
+        // Hent alle likes
+        const response = await fetch(LIKES_ENDPOINT);
+
+        if (!response.ok) {
+            throw new Error('Kunne ikke hente likte brukere');
+        }
+
+        const allLikes = await response.json();
+        console.log('Alle likes hentet fra CrudCrud:', allLikes);
+
+        // Filtrer etter brukernavn
+        const userLikes = allLikes.filter(like => like.username === username);
+
+        console.log('Filtrerte likes for bruker', username, ':', userLikes);
+
+        return userLikes;
+    } catch (error) {
+        console.error('Feil ved henting av likte brukere fra database:', error);
+        throw error;
+    }
+}
+
 // Eksporter funksjoner for bruk i andre filer
 window.saveFiltersToDatabase = saveFiltersToDatabase;
 window.getFiltersFromDatabase = getFiltersFromDatabase;
+window.getLikedUsersFromDatabase = getLikedUsersFromDatabase;
