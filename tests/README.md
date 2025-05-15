@@ -32,11 +32,11 @@ npm test
 
 ## Testmetodikk
 
-Testene er skrevet med Jest og følger AAA-mønsteret (Arrange, Act, Assert):
+Testene er skrevet med Jest og følger AAA-mønsteret (Forberedelse, Handling, Kontroll):
 
-1. **Arrange**: Sette opp testdata og forutsetninger
-2. **Act**: Utføre handlingen som skal testes
-3. **Assert**: Verifisere at resultatet er som forventet
+1. **Forberedelse**: Sette opp testdata og forutsetninger
+2. **Handling**: Utføre handlingen som skal testes
+3. **Kontroll**: Verifisere at resultatet er som forventet
 
 ## Mocking
 

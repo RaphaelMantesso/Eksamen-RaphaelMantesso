@@ -1,18 +1,18 @@
-// Teste para perfil (Página 2)
+// Test for brukerprofil (Side 2)
 
-// Configurar localStorage mock
+// Konfigurere localStorage mock
 beforeEach(() => {
-  // Limpar localStorage antes de cada teste
+  // Tømme localStorage før hver test
   window.localStorage.clear();
 });
 
 describe('Brukerprofil (Side 2)', () => {
-  // Teste 1: Lagring og henting av brukerprofil i localStorage
+  // Test 1: Lagring og henting av brukerprofil i localStorage
   test('Lagring og henting av brukerprofil i localStorage', () => {
-    // Arrange
-    const userId = '123';
-    const userProfile = {
-      id: userId,
+    // Forberedelse
+    const brukerId = '123';
+    const brukerProfil = {
+      id: brukerId,
       name: 'Test Bruker',
       age: 30,
       location: 'Oslo',
@@ -22,22 +22,22 @@ describe('Brukerprofil (Side 2)', () => {
       avatar: 'avatar-1'
     };
 
-    const profiles = {};
-    profiles[userId] = userProfile;
+    const profiler = {};
+    profiler[brukerId] = brukerProfil;
 
-    // Act
-    localStorage.setItem('userProfiles', JSON.stringify(profiles));
-    const retrievedProfilesJson = localStorage.getItem('userProfiles');
-    const retrievedProfiles = JSON.parse(retrievedProfilesJson);
+    // Handling
+    localStorage.setItem('userProfiles', JSON.stringify(profiler));
+    const hentetProfilJson = localStorage.getItem('userProfiles');
+    const hentetProfil = JSON.parse(hentetProfilJson);
 
-    // Assert
-    expect(retrievedProfiles[userId]).toEqual(userProfile);
+    // Kontroll
+    expect(hentetProfil[brukerId]).toEqual(brukerProfil);
   });
 
-  // Teste 2: Validering av profildata
+  // Test 2: Validering av profildata
   test('Validering av profildata', () => {
-    // Arrange
-    const validProfile = {
+    // Forberedelse
+    const gyldigProfil = {
       name: 'Test Bruker',
       age: 30,
       location: 'Oslo',
@@ -46,7 +46,7 @@ describe('Brukerprofil (Side 2)', () => {
       preference: 'female'
     };
 
-    const invalidProfile = {
+    const ugyldigProfil = {
       name: '',
       age: 15,
       location: '',
@@ -56,17 +56,17 @@ describe('Brukerprofil (Side 2)', () => {
     };
 
     // Funksjon for validering av profil
-    const validateProfile = (profile) => {
-      if (!profile.name || profile.name.length < 2) return false;
-      if (!profile.age || profile.age < 18) return false;
-      if (!profile.location || profile.location.length < 2) return false;
-      if (!['male', 'female', 'other'].includes(profile.gender)) return false;
-      if (!['male', 'female', 'both'].includes(profile.preference)) return false;
+    const validerProfil = (profil) => {
+      if (!profil.name || profil.name.length < 2) return false;
+      if (!profil.age || profil.age < 18) return false;
+      if (!profil.location || profil.location.length < 2) return false;
+      if (!['male', 'female', 'other'].includes(profil.gender)) return false;
+      if (!['male', 'female', 'both'].includes(profil.preference)) return false;
       return true;
     };
 
-    // Act & Assert
-    expect(validateProfile(validProfile)).toBe(true);
-    expect(validateProfile(invalidProfile)).toBe(false);
+    // Handling og kontroll
+    expect(validerProfil(gyldigProfil)).toBe(true);
+    expect(validerProfil(ugyldigProfil)).toBe(false);
   });
 });

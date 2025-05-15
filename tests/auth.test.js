@@ -1,32 +1,32 @@
-// Teste para autenticação (Página 1)
+// Test for autentisering (Side 1)
 
-// Testes
+// Tester
 describe('Autentisering (Side 1)', () => {
-  // Teste 1: Validering av brukernavn
+  // Test 1: Validering av brukernavn
   test('Validering av brukernavn', () => {
-    // Arrange
-    const validUsername = 'testuser';
-    const invalidUsername = 'ab';
+    // Forberedelse
+    const gyldigBrukernavn = 'testuser';
+    const ugyldigBrukernavn = 'ab';
 
     // Funksjon for validering av brukernavn
-    const validateUsername = (username) => username && username.length >= 3;
+    const validerBrukernavn = (brukernavn) => brukernavn && brukernavn.length >= 3;
 
-    // Act & Assert
-    expect(validateUsername(validUsername)).toBe(true);
-    expect(validateUsername(invalidUsername)).toBe(false);
+    // Handling og kontroll
+    expect(validerBrukernavn(gyldigBrukernavn)).toBe(true);
+    expect(validerBrukernavn(ugyldigBrukernavn)).toBe(false);
   });
 
-  // Teste 2: Validering av passord
+  // Test 2: Validering av passord
   test('Validering av passord', () => {
-    // Arrange
-    const validPassword = 'password123';
-    const invalidPassword = 'pass';
+    // Forberedelse
+    const gyldigPassord = 'password123';
+    const ugyldigPassord = 'pass';
 
     // Funksjon for validering av passord
-    const validatePassword = (password) => password && password.length >= 6;
+    const validerPassord = (passord) => passord && passord.length >= 6;
 
-    // Act & Assert
-    expect(validatePassword(validPassword)).toBe(true);
-    expect(validatePassword(invalidPassword)).toBe(false);
+    // Handling og kontroll
+    expect(validerPassord(gyldigPassord)).toBe(true);
+    expect(validerPassord(ugyldigPassord)).toBe(false);
   });
 });

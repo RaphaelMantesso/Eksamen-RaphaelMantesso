@@ -6,8 +6,8 @@ Dette er en dating-applikasjon utviklet som eksamensprosjekt i JavaScript og API
 
 Applikasjonen er en dating-plattform der brukere kan registrere seg, logge inn, opprette en profil, og finne potensielle matcher basert på preferanser. Applikasjonen består av to hovedsider:
 
-1. **Innloggingsside (Side 1)**: Registrering og innlogging av brukere
-2. **Dating App (Side 2)**: Profilvisning, filtrering, og matching-funksjonalitet
+1. Innloggingsside (Side 1): Registrering og innlogging av brukere
+2. Dating App (Side 2): Profilvisning, filtrering, og matching-funksjonalitet
 
 ## Funksjonalitet
 
@@ -26,7 +26,7 @@ Applikasjonen er en dating-plattform der brukere kan registrere seg, logge inn, 
 - Mulighet for å slette likte brukere
 
 ### Tilleggsfunksjonalitet
-- **Super Like**: Mulighet for å gi en spesiell "Super Like" til brukere man er ekstra interessert i
+- Super Like: Mulighet for å gi en spesiell "Super Like" til brukere man er ekstra interessert i
 
 ## Teknologier
 
@@ -94,19 +94,19 @@ Testene dekker:
 
 ## Bruk av applikasjonen
 
-1. **Registrering/Innlogging**:
+1. Registrering/Innlogging:
    - Registrer en ny bruker med brukernavn og passord
    - Logg inn med eksisterende bruker
 
-2. **Profilredigering**:
+2. Profilredigering:
    - Oppdater profilinformasjon (navn, alder, sted, etc.)
    - Last opp profilbilde
 
-3. **Filtrering**:
+3. Filtrering:
    - Angi preferanser for alder og kjønn
    - Lagre filterpreferanser
 
-4. **Matching**:
+4. Matching:
    - Bla gjennom potensielle matcher
    - Velg "ja" eller "nei" for hver bruker
    - Gi "Super Like" til spesielt interessante brukere

@@ -1,54 +1,54 @@
-// Teste para matching (Página 2)
+// Test for matching-funksjonalitet (Side 2)
 
-// Configurar localStorage mock
+// Konfigurere localStorage mock
 beforeEach(() => {
-  // Limpar localStorage antes de cada teste
+  // Tømme localStorage før hver test
   window.localStorage.clear();
 });
 
 describe('Matching-funksjonalitet (Side 2)', () => {
-  // Teste 1: Filtrering av brukere basert på alder og kjønn
+  // Test 1: Filtrering av brukere basert på alder og kjønn
   test('Filtrering av brukere basert på alder og kjønn', () => {
-    // Arrange
-    const users = [
+    // Forberedelse
+    const brukere = [
       {
-        login: { uuid: 'user1' },
+        login: { uuid: 'bruker1' },
         name: { first: 'John', last: 'Doe' },
         dob: { age: 25 },
         gender: 'male'
       },
       {
-        login: { uuid: 'user2' },
+        login: { uuid: 'bruker2' },
         name: { first: 'Jane', last: 'Smith' },
         dob: { age: 30 },
         gender: 'female'
       },
       {
-        login: { uuid: 'user3' },
+        login: { uuid: 'bruker3' },
         name: { first: 'Bob', last: 'Johnson' },
         dob: { age: 45 },
         gender: 'male'
       }
     ];
 
-    const filters = {
+    const filtre = {
       minAge: 20,
       maxAge: 40,
       gender: 'male'
     };
 
     // Funksjon for filtrering av brukere
-    const filterUsers = (users, filters) => {
-      return users.filter(user => {
+    const filtrerBrukere = (brukere, filtre) => {
+      return brukere.filter(bruker => {
         // Filtrer på kjønn
-        if (filters.gender !== 'all') {
-          if (user.gender !== filters.gender) {
+        if (filtre.gender !== 'all') {
+          if (bruker.gender !== filtre.gender) {
             return false;
           }
         }
 
         // Filtrer på alder
-        if (user.dob.age < filters.minAge || user.dob.age > filters.maxAge) {
+        if (bruker.dob.age < filtre.minAge || bruker.dob.age > filtre.maxAge) {
           return false;
         }
 
@@ -56,19 +56,19 @@ describe('Matching-funksjonalitet (Side 2)', () => {
       });
     };
 
-    // Act
-    const filteredUsers = filterUsers(users, filters);
+    // Handling
+    const filtrertebrukere = filtrerBrukere(brukere, filtre);
 
-    // Assert
-    expect(filteredUsers.length).toBe(1);
-    expect(filteredUsers[0].login.uuid).toBe('user1');
+    // Kontroll
+    expect(filtrertebrukere.length).toBe(1);
+    expect(filtrertebrukere[0].login.uuid).toBe('bruker1');
   });
 
-  // Teste 2: Super Like funksjonalitet
+  // Test 2: Super Like funksjonalitet
   test('Super Like funksjonalitet', () => {
-    // Arrange
-    const user = {
-      login: { uuid: 'user1' },
+    // Forberedelse
+    const bruker = {
+      login: { uuid: 'bruker1' },
       name: { first: 'John', last: 'Doe' },
       dob: { age: 25 },
       location: { city: 'Oslo', country: 'Norway' },
@@ -76,32 +76,32 @@ describe('Matching-funksjonalitet (Side 2)', () => {
       gender: 'male'
     };
 
-    const currentUser = {
+    const gjeldendeBruker = {
       id: '123',
-      username: 'testuser'
+      username: 'testbruker'
     };
 
     // Funksjon for å lage et likedUser-objekt
-    const createLikedUser = (user, currentUser, isSuperLike = false) => {
+    const opprettLiktBruker = (bruker, gjeldendeBruker, erSuperLike = false) => {
       return {
-        userId: currentUser.id,
-        username: currentUser.username,
-        likedUserId: user.login.uuid,
-        name: `${user.name.first} ${user.name.last}`,
-        age: user.dob.age,
-        location: `${user.location.city}, ${user.location.country}`,
-        picture: user.picture.large,
-        isSuperLike: isSuperLike,
+        userId: gjeldendeBruker.id,
+        username: gjeldendeBruker.username,
+        likedUserId: bruker.login.uuid,
+        name: `${bruker.name.first} ${bruker.name.last}`,
+        age: bruker.dob.age,
+        location: `${bruker.location.city}, ${bruker.location.country}`,
+        picture: bruker.picture.large,
+        isSuperLike: erSuperLike,
         timestamp: new Date().toISOString()
       };
     };
 
-    // Act
-    const regularLike = createLikedUser(user, currentUser, false);
-    const superLike = createLikedUser(user, currentUser, true);
+    // Handling
+    const vanligLike = opprettLiktBruker(bruker, gjeldendeBruker, false);
+    const superLike = opprettLiktBruker(bruker, gjeldendeBruker, true);
 
-    // Assert
-    expect(regularLike.isSuperLike).toBe(false);
+    // Kontroll
+    expect(vanligLike.isSuperLike).toBe(false);
     expect(superLike.isSuperLike).toBe(true);
     expect(superLike.name).toBe('John Doe');
     expect(superLike.location).toBe('Oslo, Norway');
